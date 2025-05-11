@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastrar Ponto de Coleta</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<nav>
+    <a href="index.html">Início</a>
+    <a href="cadastro.html">Cadastrar</a>
+    <a href="lista.html">Listar Pontos</a>
+    <a href="filtro.html">Filtrar</a>
+</nav>
+
+<h2>Cadastrar Ponto de Coleta</h2>
+<form id="formPonto">
+    <input type="text" name="nome" placeholder="Nome" required>
+    <input type="text" name="endereco" placeholder="Endereço" required>
+
+    <div class="checkbox-group">
+        <h3>Tipos de Resíduo Aceitos</h3>
+        <label><input type="checkbox" name="tipoResiduo" value="Plástico"> Plástico</label><br>
+        <label><input type="checkbox" name="tipoResiduo" value="Vidro"> Vidro</label><br>
+        <label><input type="checkbox" name="tipoResiduo" value="Papel"> Papel</label><br>
+        <label><input type="checkbox" name="tipoResiduo" value="Metal"> Metal</label><br>
+        <label><input type="checkbox" name="tipoResiduo" value="Orgânico"> Orgânico</label><br>
+    </div>
+
+    <button type="submit">Cadastrar</button>
+</form>
+
+<script>
+    document.getElementById("formPonto").onsubmit = async function(e) {
+        e.preventDefault();
+
+        // Coletando os dados do formulário
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        // Para os tipos de resíduo, pegamos todos os valores dos checkboxes marcados
+        const tipoResiduo = [];
+        formData.forEach((value, key) => {
+            if (key === 'tipoResiduo') {
+                tipoResiduo.push(value);
+            }
+        });
+        data.tipoResiduo = tipoResiduo;
+
+        // Enviando os dados para o servidor
+        await fetch('/pontos', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        alert("Ponto de Coleta Cadastrado!");
+        window.location.href = "lista.html";
+    };
+</script>
+
+</body>
+</html>

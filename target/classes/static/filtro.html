@@ -1,0 +1,45 @@
+<!-- src/main/resources/static/filtro.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Filtro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="index.html">Início</a>
+    <a href="cadastro.html">Cadastrar</a>
+    <a href="lista.html">Listar Pontos</a>
+    <a href="filtro.html">Filtrar</a>
+</nav>
+
+<h2>Buscar por Tipo de Resíduo</h2>
+<input type="text" id="busca" placeholder="Ex: Plástico">
+<ul id="resultados"></ul>
+
+
+<script>
+    document.getElementById("busca").oninput = async function(e) {
+        const tipo = e.target.value.toLowerCase();
+        const res = await fetch('/pontos');
+        const data = await res.json();
+        const resultados = document.getElementById("resultados");
+        resultados.innerHTML = "";
+
+        data
+            .filter(p =>
+                Array.isArray(p.tipoResiduo) &&
+                p.tipoResiduo.some(r => r.toLowerCase().includes(tipo))
+            )
+            .forEach(p => {
+                const li = document.createElement("li");
+                li.innerText = `${p.nome} - ${p.endereco} (${p.tipoResiduo.join(", ")})`;
+                resultados.appendChild(li);
+            });
+    };
+</script>
+
+</body>
+</html>
