@@ -2,7 +2,7 @@
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Adicionado para garantir o cálculo correto de width/height */
 }
 
 /* Corpo da página */
@@ -110,7 +110,7 @@ h2 {
     margin: 30px 0;
 }
 
-/* Formulário */
+/* Formulário (Aplicado a cadastro.html, filtro.html, etc. se usarem a tag <form>) */
 form {
     max-width: 600px;
     margin: 0 auto;
@@ -118,19 +118,23 @@ form {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* Crucial para o cálculo da largura total */
 }
 
-form input {
-    width: 100%;
+/* Estilo geral para inputs de texto (aplicado a todos: nome, cidade, rua, numero) */
+form input[type="text"] {
+    width: 100%; /* Agora ocupa 100% da largura interna do formulário */
     padding: 12px;
-    margin: 10px 0;
+    margin-bottom: 10px; /* Espaço entre inputs */
     border-radius: 4px;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
     font-size: 1rem;
+    box-sizing: border-box; /* Inclui padding e borda no width */
 }
 
+/* Estilo para o botão do formulário */
 form button {
-    width: 100%;
+    width: 100%; /* Agora ocupa 100% da largura interna do formulário */
     padding: 12px;
     background-color: #3498db;
     color: white;
@@ -138,22 +142,50 @@ form button {
     font-size: 1.1rem;
     border-radius: 4px;
     cursor: pointer;
+    margin-top: 15px; /* Espaço acima do botão */
+    box-sizing: border-box; /* Inclui padding e borda no width */
 }
 
-form button:hover {
-    background-color: #2980b9;
+/* Estilos para as caixas de sugestão (genéricas para cidade e endereço) */
+.suggestions-box {
+    border: 1px solid #ccc;
+    border-top: none; /* Remove a borda de cima para parecer contínuo com o input */
+    max-height: 150px;
+    overflow-y: auto;
+    position: absolute;
+    background-color: white;
+    width: 100%; /* Ocupa 100% da largura do input-container */
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 4px 4px; /* Apenas cantos inferiores arredondados */
+    left: 0; /* Alinha à esquerda do input-container */
+    top: 100%; /* Posiciona logo abaixo do input */
 }
 
-/* Resultados de filtro */
-#resultados {
-    list-style-type: none;
-    padding: 0;
-    margin-top: 20px;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+.suggestions-box div {
+    padding: 8px 12px; /* Padding interno das sugestões */
+    cursor: pointer;
+    border-bottom: 1px solid #eee; /* Linha divisória entre sugestões */
 }
-/* Estilo para o grupo de checkboxes */
+
+.suggestions-box div:last-child {
+    border-bottom: none; /* Remove a linha da última sugestão */
+}
+
+.suggestions-box div:hover {
+    background-color: #f0f0f0; /* Cor de fundo ao passar o mouse */
+    color: #2c3e50; /* Cor do texto ao passar o mouse */
+}
+
+/* Remove qualquer borda indesejada dos containers de input */
+.input-container {
+    position: relative;
+    margin-bottom: 10px;
+    border: none !important; /* Força a remoção de qualquer borda */
+    box-shadow: none !important; /* Garante que não haja sombra causando linhas */
+}
+
+/* Estilos para o grupo de checkboxes */
 .checkbox-group {
     margin-top: 20px;
     padding: 15px;
@@ -163,34 +195,49 @@ form button:hover {
     display: flex;
     flex-wrap: wrap; /* Permite que os checkboxes quebrem para a linha seguinte */
     gap: 15px; /* Espaço entre os checkboxes */
+    justify-content: flex-start; /* Alinha os itens ao início da linha */
+    box-sizing: border-box; /* Inclui padding no cálculo da largura */
 }
 
-.checkbox-group h3 {
-    font-size: 1.2rem;
+/* Título "Tipo(s) de Resíduo(s) Aceito(s):" dentro do checkbox-group */
+.checkbox-group strong {
+    font-size: 1.1rem;
     color: #2c3e50;
     margin-bottom: 10px;
-    width: 100%; /* Garante que o título ocupe toda a linha */
+    width: 100%; /* Garante que o título ocupe a linha toda */
 }
 
+/* Estilo para cada label de checkbox */
 .checkbox-group label {
-    display: inline-block;
+    display: flex; /* Faz a label um container flex para alinhar input e texto */
+    align-items: center; /* Alinha o checkbox e o texto verticalmente ao centro */
     font-size: 1rem;
     color: #7f8c8d;
-    margin-bottom: 5px;
+    margin-bottom: 0; /* O gap do pai já faz o espaçamento vertical */
     cursor: pointer;
+    padding: 5px 0; /* Pequeno padding para aumentar a área clicável */
+    /* Calcula a largura para tentar colocar 3 por linha, considerando o gap */
+    flex-basis: calc(33.333% - 15px);
+    min-width: 120px; /* Largura mínima para cada item (ajustável) */
+    box-sizing: border-box; /* Inclui padding no cálculo da largura */
 }
 
+/* Estilo para o input do checkbox */
 .checkbox-group input[type="checkbox"] {
-    margin-right: 10px;
-    accent-color: #3498db; /* Customiza a cor do checkbox */
-    width: 14px; /* Diminui o tamanho do checkbox */
-    height: 14px; /* Diminui o tamanho do checkbox */
-    vertical-align: middle;
+    margin-right: 8px; /* Espaço entre o checkbox visual e o texto */
+    accent-color: #3498db; /* Customiza a cor do checkbox nativo */
+    width: 18px; /* Tamanho do checkbox (aumentado ligeiramente para visibilidade) */
+    height: 18px; /* Tamanho do checkbox */
+    flex-shrink: 0; /* Evita que o checkbox diminua em layouts flex */
+    vertical-align: middle; /* Ajuda no alinhamento vertical, embora flex já faça muito */
+    transform: translateY(-1px); /* Ajuste fino para alinhar verticalmente se ainda estiver torto */
+    border: 1px solid #999; /* Adiciona uma borda padrão para melhor visual */
+    border-radius: 3px; /* Leve arredondamento */
 }
 
 .checkbox-group input[type="checkbox"]:checked {
-    background-color: #3498db; /* Cor de fundo quando marcado */
-    border-color: #2980b9; /* Borda do checkbox marcado */
+    background-color: #3498db;
+    border-color: #2980b9;
 }
 
 .checkbox-group input[type="checkbox"]:focus {
@@ -198,9 +245,19 @@ form button:hover {
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
 }
 
-/* Estilo de hover no label */
+/* Estilo de hover no label do checkbox */
 .checkbox-group label:hover {
     color: #2c3e50;
+}
+
+/* Estilos para a lista de resultados (lista.html e filtro.html) */
+#resultados {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 20px;
+    max-width: 800px; /* Largura máxima da lista */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #resultados li {
@@ -236,18 +293,19 @@ form button:hover {
     border: 1px solid #ccc;
 }
 
-/* Filtro de Busca */
+/* Estilo para o campo de busca (filtro.html) */
 #busca {
-    width: 100%;
+    width: 100%; /* Ocupa 100% da largura do contêiner pai */
     padding: 12px;
     font-size: 1.1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
     margin-bottom: 20px;
     display: block;
-    max-width: 600px;
+    max-width: 600px; /* Largura máxima, se estiver dentro do form ou centralizado */
     margin-left: auto;
     margin-right: auto;
+    box-sizing: border-box; /* Inclui padding e borda no width */
 }
 
 #busca::placeholder {
@@ -259,10 +317,13 @@ form button:hover {
     border-color: #3498db;
 }
 
-/* Lista de pontos */
+/* Estilos para a lista de pontos (lista.html) */
 #listaPontos {
     margin-top: 20px;
     padding: 20px;
+    max-width: 800px; /* Adicionado para alinhar com #resultados */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .ponto {

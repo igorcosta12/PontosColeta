@@ -1,10 +1,99 @@
-<!-- src/main/resources/static/filtro.html -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Filtro</title>
+    <title>Filtro de Pontos de Coleta</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+
+        #map-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #map {
+            height: 50vh;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .filter-controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            font-family: Arial, sans-serif;
+        }
+
+        .filter-controls strong {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px 20px;
+            padding-left: 10px;
+        }
+
+        .checkbox-grid input[type="checkbox"] {
+            accent-color: #198754; /* Verde Bootstrap */
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-grid label {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .checkbox-grid label:hover {
+            background-color: #e9f5ec;
+        }
+
+
+        #loadingMapMessage, #errorMapMessage {
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+            color: #555;
+        }
+
+        #errorMapMessage {
+            color: red;
+        }
+        #clearFiltersBtn {
+            background-color: #3498db;
+            color: white;
+            padding: 8px 16px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 10px;
+        }
+
+        #clearFiltersBtn:hover {
+            background-color: #157347;
+            transform: scale(1.03);
+        }
+
+    </style>
+
 </head>
 <body>
 
@@ -13,33 +102,128 @@
     <a href="cadastro.html">Cadastrar</a>
     <a href="lista.html">Listar Pontos</a>
     <a href="filtro.html">Filtrar</a>
+    <a href="mapa.html">Mapa</a>
 </nav>
 
-<h2>Buscar por Tipo de Resíduo</h2>
-<input type="text" id="busca" placeholder="Ex: Plástico">
-<ul id="resultados"></ul>
+<h2>Filtrar Pontos de Coleta no Mapa</h2>
+
+<div class="filter-controls">
+    <strong>Tipo(s) de Resíduo(s) Aceito(s):</strong>
+    <div class="checkbox-grid">
+        <label><input type="checkbox" name="filterTipoResiduo" value="Plástico"> Plástico</label>
+        <label><input type="checkbox" name="filterTipoResiduo" value="Papel"> Papel</label>
+        <label><input type="checkbox" name="filterTipoResiduo" value="Vidro"> Vidro</label>
+        <label><input type="checkbox" name="filterTipoResiduo" value="Metal"> Metal</label>
+        <label><input type="checkbox" name="filterTipoResiduo" value="Orgânico"> Orgânico</label>
+        <label><input type="checkbox" name="filterTipoResiduo" value="Eletrônicos"> Eletrônicos</label>
+    </div>
+    <br><button id="clearFiltersBtn">Limpar Filtros</button>
+</div>
 
 
+<div id="loadingMapMessage">Carregando mapa e pontos...</div>
+<div id="errorMapMessage" style="display: none;"></div>
+
+<!-- NOVO: container centralizado para o mapa -->
+<div id="map-container">
+    <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    document.getElementById("busca").oninput = async function(e) {
-        const tipo = e.target.value.toLowerCase();
-        const res = await fetch('/pontos');
-        const data = await res.json();
-        const resultados = document.getElementById("resultados");
-        resultados.innerHTML = "";
+    const map = L.map('map');
+    let allPontos = []; // Armazenar todos os pontos carregados
+    let currentMarkers = L.featureGroup().addTo(map); // Grupo de marcadores ativos no mapa
 
-        data
-            .filter(p =>
-                Array.isArray(p.tipoResiduo) &&
-                p.tipoResiduo.some(r => r.toLowerCase().includes(tipo))
-            )
-            .forEach(p => {
-                const li = document.createElement("li");
-                li.innerText = `${p.nome} - ${p.endereco} (${p.tipoResiduo.join(", ")})`;
-                resultados.appendChild(li);
-            });
-    };
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const loadingMapMessage = document.getElementById("loadingMapMessage");
+    const errorMapMessage = document.getElementById("errorMapMessage");
+    const filterCheckboxes = document.querySelectorAll('input[name="filterTipoResiduo"]');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+
+    async function fetchPontos() {
+        loadingMapMessage.style.display = "block";
+        errorMapMessage.style.display = "none";
+        try {
+            const res = await fetch('/pontos');
+            if (!res.ok) {
+                throw new Error(`Erro ao carregar pontos: ${res.status}`);
+            }
+            allPontos = await res.json();
+            loadingMapMessage.style.display = "none";
+            applyFilters(); // Aplicar filtros iniciais (se houver) ou mostrar todos
+        } catch (error) {
+            console.error('Erro ao buscar os pontos de coleta:', error);
+            loadingMapMessage.style.display = "none";
+            errorMapMessage.style.display = "block";
+            errorMapMessage.textContent = `Erro ao carregar pontos: ${error.message}`;
+            // Fallback para uma visualização padrão se não houver pontos
+            map.setView([-23.4258, -51.9388], 13); // Exemplo: Maringá, PR
+        }
+    }
+
+    function applyFilters() {
+        currentMarkers.clearLayers(); // Remove todos os marcadores atuais do mapa
+        const selectedTypes = Array.from(filterCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value.toLowerCase());
+
+        const filteredPontos = allPontos.filter(p => {
+            if (!p.latitude || !p.longitude) return false; // Ignora pontos sem coordenadas
+
+            // Se nenhum filtro estiver selecionado, mostra todos os pontos
+            if (selectedTypes.length === 0) {
+                return true;
+            }
+
+            // Garante que p.tipoResiduo é um array e o converte para minúsculas para comparação
+            const pontoTipos = Array.isArray(p.tipoResiduo) ? p.tipoResiduo.map(t => t.toLowerCase()) : [];
+
+            // Verifica se o ponto possui PELO MENOS UM dos tipos selecionados
+            return selectedTypes.some(selectedType => pontoTipos.includes(selectedType));
+        });
+
+        const markersToAdd = [];
+        filteredPontos.forEach(p => {
+            const marker = L.marker([p.latitude, p.longitude])
+                .bindPopup(`<strong>${p.nome}</strong><br>${p.endereco}<br><em>${ (p.tipoResiduo && p.tipoResiduo.length > 0) ? p.tipoResiduo.join(", ") : "Não informado" }</em>`);
+            markersToAdd.push(marker);
+            currentMarkers.addLayer(marker); // Adiciona ao grupo de marcadores
+        });
+
+        // Ajusta a visualização do mapa para cobrir os marcadores filtrados
+        if (markersToAdd.length > 0) {
+            map.fitBounds(currentMarkers.getBounds(), { padding: [50, 50] }); // Padding para não colar nas bordas
+        } else {
+            // Se nenhum ponto corresponde ao filtro, mantém a visualização atual
+            // ou centraliza em um ponto padrão/cidade principal se desejar.
+            // Para este caso, manter a visualização atual para que o usuário possa mudar o filtro.
+            if (allPontos.length > 0) {
+                map.fitBounds(L.featureGroup(allPontos.map(p => L.marker([p.latitude, p.longitude]))).getBounds(), { padding: [50, 50] });
+            } else {
+                map.setView([-23.4258, -51.9388], 13); // Maringá, PR
+            }
+
+        }
+    }
+
+    // Adiciona event listeners para os checkboxes de filtro
+    filterCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', applyFilters);
+    });
+
+    // Event listener para o botão de limpar filtros
+    clearFiltersBtn.addEventListener('click', () => {
+        filterCheckboxes.forEach(cb => cb.checked = false);
+        applyFilters(); // Re-aplica os filtros (todos os pontos aparecerão)
+    });
+
+    // Carrega os pontos quando a página é iniciada
+    fetchPontos();
 </script>
-
 </body>
 </html>

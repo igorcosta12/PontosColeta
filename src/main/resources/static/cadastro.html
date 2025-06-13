@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Cadastrar Ponto de Coleta</title>
     <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
 
@@ -13,51 +12,267 @@
     <a href="cadastro.html">Cadastrar</a>
     <a href="lista.html">Listar Pontos</a>
     <a href="filtro.html">Filtrar</a>
+    <a href="mapa.html">Mapa</a>
 </nav>
 
 <h2>Cadastrar Ponto de Coleta</h2>
 <form id="formPonto">
-    <input type="text" name="nome" placeholder="Nome" required>
-    <input type="text" name="endereco" placeholder="Endereço" required>
+    <input type="text" name="nome" placeholder="Nome" required><br>
+
+    <div class="input-container">
+        <input type="text" id="cidadeInput" placeholder="Cidade (Ex: Maringá)" autocomplete="off" required><br>
+        <div id="cidadeSuggestions" class="suggestions-box"></div>
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="ruaAvenidaInput" placeholder="Rua/Avenida (Ex: Av. Brasil)" autocomplete="off" required><br>
+        <div id="enderecoSuggestions" class="suggestions-box"></div>
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="numeroInput" placeholder="Número (Ex: 123)" required><br>
+    </div>
+
+    <input type="hidden" name="endereco" id="hiddenEndereco">
+
 
     <div class="checkbox-group">
-        <h3>Tipos de Resíduo Aceitos</h3>
-        <label><input type="checkbox" name="tipoResiduo" value="Plástico"> Plástico</label><br>
-        <label><input type="checkbox" name="tipoResiduo" value="Vidro"> Vidro</label><br>
-        <label><input type="checkbox" name="tipoResiduo" value="Papel"> Papel</label><br>
-        <label><input type="checkbox" name="tipoResiduo" value="Metal"> Metal</label><br>
-        <label><input type="checkbox" name="tipoResiduo" value="Orgânico"> Orgânico</label><br>
+        <strong>Tipo(s) de Resíduo(s) Aceito(s):</strong><br>
+        <label><input type="checkbox" name="tipoResiduo" value="Plástico"> Plástico</label>
+        <label><input type="checkbox" name="tipoResiduo" value="Papel"> Papel</label>
+        <label><input type="checkbox" name="tipoResiduo" value="Vidro"> Vidro</label>
+        <label><input type="checkbox" name="tipoResiduo" value="Metal"> Metal</label>
+        <label><input type="checkbox" name="tipoResiduo" value="Orgânico"> Orgânico</label>
+        <label><input type="checkbox" name="tipoResiduo" value="Eletrônicos"> Eletrônicos</label>
     </div>
 
     <button type="submit">Cadastrar</button>
 </form>
 
 <script>
+    const cidadeInput = document.getElementById("cidadeInput");
+    const cidadeSuggestionsBox = document.getElementById("cidadeSuggestions");
+    const ruaAvenidaInput = document.getElementById("ruaAvenidaInput");
+    const numeroInput = document.getElementById("numeroInput");
+    const enderecoSuggestionsBox = document.getElementById("enderecoSuggestions");
+    const hiddenEndereco = document.getElementById("hiddenEndereco");
+
+    let selectedLat = null;
+    let selectedLon = null;
+
+    function formatAddress(address) {
+        let parts = [];
+
+        let cityStatePart = address.city || address.town || address.village;
+        if (cityStatePart) {
+            if (address.state_abbr) {
+                cityStatePart += ` - ${address.state_abbr}`;
+            } else if (address.state && address.state !== cityStatePart && !cityStatePart.includes(address.state)) {
+                cityStatePart += ` - ${address.state}`;
+            }
+            parts.push(cityStatePart);
+        } else if (address.state_abbr) {
+            parts.push(address.state_abbr);
+        } else if (address.state) {
+            parts.push(address.state);
+        }
+
+        if (address.road) {
+            parts.push(address.road);
+        }
+
+        let neighborhood = address.suburb || address.neighbourhood || address.hamlet;
+        if (neighborhood && !parts.includes(neighborhood) && !cityStatePart.includes(neighborhood) && !address.road?.includes(neighborhood)) {
+            parts.push(neighborhood);
+        }
+
+        let uniqueParts = [];
+        parts.forEach(part => {
+            if (part && !uniqueParts.includes(part)) {
+                uniqueParts.push(part);
+            }
+        });
+
+        return uniqueParts.join(', ');
+    }
+
+    cidadeInput.addEventListener("input", async () => {
+        const query = cidadeInput.value.trim();
+        if (query.length < 3) {
+            cidadeSuggestionsBox.innerHTML = "";
+            return;
+        }
+
+        clearTimeout(cidadeInput.debounceTimer);
+        cidadeInput.debounceTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=5&addressdetails=1`);
+                const data = await res.json();
+
+                cidadeSuggestionsBox.innerHTML = "";
+                if (data.length === 0) {
+                    cidadeSuggestionsBox.innerHTML = "<div>Nenhuma cidade encontrada.</div>";
+                }
+
+                data.forEach(item => {
+                    if (item.type === 'city' || item.type === 'town' || item.type === 'village' || item.type === 'administrative' || item.type === 'suburb') {
+                        const div = document.createElement("div");
+                        let suggestionText = item.address.city || item.address.town || item.address.village;
+                        if (!suggestionText && item.display_name) {
+                            suggestionText = item.display_name.split(',')[0].trim();
+                        }
+                        if (suggestionText) {
+                            if (item.address.state_abbr) {
+                                suggestionText += ` - ${item.address.state_abbr}`;
+                            } else if (item.address.state && !suggestionText.includes(item.address.state)) {
+                                suggestionText += ` - ${item.address.state}`;
+                            }
+                        } else {
+                            suggestionText = item.display_name;
+                        }
+                        div.textContent = suggestionText;
+
+                        div.addEventListener("click", () => {
+                            let selectedCityName = item.address.city || item.address.town || item.address.village;
+                            if (!selectedCityName && item.display_name) {
+                                selectedCityName = item.display_name.split(',')[0].trim();
+                            }
+
+                            let selectedStatePart = '';
+                            if (item.address.state_abbr) {
+                                selectedStatePart = ` - ${item.address.state_abbr}`;
+                            } else if (item.address.state && selectedCityName && !selectedCityName.includes(item.address.state)) {
+                                selectedStatePart = ` - ${item.address.state}`;
+                            }
+
+                            cidadeInput.value = (selectedCityName || '') + selectedStatePart;
+                            cidadeSuggestionsBox.innerHTML = "";
+                            ruaAvenidaInput.focus();
+                        });
+                        cidadeSuggestionsBox.appendChild(div);
+                    }
+                });
+            } catch (error) {
+                console.error("Erro ao buscar sugestões de cidade:", error);
+                cidadeSuggestionsBox.innerHTML = "<div>Erro ao carregar sugestões de cidade.</div>";
+            }
+        }, 300);
+    });
+
+    ruaAvenidaInput.addEventListener("input", async () => {
+        const ruaQuery = ruaAvenidaInput.value;
+        const cidadeQuery = cidadeInput.value.trim();
+
+        if (ruaQuery.length < 3 || cidadeQuery.length === 0) {
+            enderecoSuggestionsBox.innerHTML = "";
+            return;
+        }
+
+        clearTimeout(ruaAvenidaInput.debounceTimer);
+        ruaAvenidaInput.debounceTimer = setTimeout(async () => {
+            try {
+                const fullQuery = `${ruaQuery}, ${cidadeQuery}`;
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullQuery)}&addressdetails=1&limit=5`);
+                const data = await res.json();
+
+                enderecoSuggestionsBox.innerHTML = "";
+
+                if (data.length === 0) {
+                    enderecoSuggestionsBox.innerHTML = "<div>Nenhuma sugestão encontrada para esta rua/avenida na cidade.</div>";
+                }
+
+                data.forEach(item => {
+                    const div = document.createElement("div");
+                    div.textContent = item.display_name;
+                    div.addEventListener("click", () => {
+                        ruaAvenidaInput.value = formatAddress(item.address);
+
+                        selectedLat = parseFloat(item.lat);
+                        selectedLon = parseFloat(item.lon);
+
+                        enderecoSuggestionsBox.innerHTML = "";
+                        numeroInput.focus();
+                    });
+                    enderecoSuggestionsBox.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Erro ao buscar sugestões de endereço:", error);
+                enderecoSuggestionsBox.innerHTML = "<div>Erro ao carregar sugestões de endereço. Tente novamente.</div>";
+            }
+        }, 300);
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!cidadeInput.contains(e.target) && !cidadeSuggestionsBox.contains(e.target)) {
+            cidadeSuggestionsBox.innerHTML = "";
+        }
+        if (!ruaAvenidaInput.contains(e.target) && !enderecoSuggestionsBox.contains(e.target)) {
+            enderecoSuggestionsBox.innerHTML = "";
+        }
+    });
+
     document.getElementById("formPonto").onsubmit = async function(e) {
         e.preventDefault();
 
-        // Coletando os dados do formulário
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
+        const nome = this.nome.value.trim();
+        const cidade = cidadeInput.value.trim();
+        const ruaAvenida = ruaAvenidaInput.value.trim();
+        const numero = numeroInput.value.trim();
 
-        // Para os tipos de resíduo, pegamos todos os valores dos checkboxes marcados
-        const tipoResiduo = [];
-        formData.forEach((value, key) => {
-            if (key === 'tipoResiduo') {
-                tipoResiduo.push(value);
+        const enderecoCompleto = `${ruaAvenida}, ${numero}, ${cidade}`;
+        hiddenEndereco.value = enderecoCompleto;
+
+        const selectedTiposResiduo = Array.from(document.querySelectorAll('input[name="tipoResiduo"]:checked'))
+            .map(cb => cb.value);
+
+        if (!nome) {
+            alert("Por favor, preencha o nome do ponto.");
+            return;
+        }
+        if (!cidade || !ruaAvenida || !numero) {
+            alert("Por favor, preencha a cidade, rua/avenida e o número.");
+            return;
+        }
+        if (selectedLat === null || selectedLon === null) {
+            alert("Por favor, selecione a rua/avenida na lista de sugestões para obter as coordenadas.");
+            return;
+        }
+        if (selectedTiposResiduo.length === 0) {
+            alert("Por favor, selecione pelo menos um tipo de resíduo.");
+            return;
+        }
+
+        const data = {
+            nome,
+            endereco: hiddenEndereco.value,
+            tipoResiduo: selectedTiposResiduo,
+            latitude: selectedLat,
+            longitude: selectedLon
+        };
+
+        try {
+            const response = await fetch('/pontos', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert("Ponto cadastrado com sucesso!");
+                e.target.reset();
+                cidadeSuggestionsBox.innerHTML = "";
+                enderecoSuggestionsBox.innerHTML = "";
+                selectedLat = null;
+                selectedLon = null;
+                hiddenEndereco.value = "";
+            } else {
+                const errorText = await response.text();
+                alert(`Erro ao cadastrar ponto: ${response.status} - ${errorText}`);
             }
-        });
-        data.tipoResiduo = tipoResiduo;
-
-        // Enviando os dados para o servidor
-        await fetch('/pontos', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
-
-        alert("Ponto de Coleta Cadastrado!");
-        window.location.href = "lista.html";
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+            alert("Ocorreu um erro ao tentar cadastrar o ponto. Verifique sua conexão ou o servidor.");
+        }
     };
 </script>
 

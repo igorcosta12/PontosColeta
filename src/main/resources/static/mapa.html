@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Mapa de Pontos de Coleta</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        #map {
+            height: 90vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="index.html">Início</a>
+    <a href="cadastro.html">Cadastrar</a>
+    <a href="lista.html">Listar</a>
+    <a href="filtro.html">Filtrar</a>
+</nav>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Initialize the map without a fixed center or zoom
+    const map = L.map('map');
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Array to hold all the markers
+    const markers = [];
+
+    // Fetch data from the backend and add markers
+    fetch('/pontos')
+        .then(res => res.json())
+        .then(pontos => {
+            pontos.forEach(p => {
+                if (p.latitude && p.longitude) {
+                    const marker = L.marker([p.latitude, p.longitude])
+                        .addTo(map)
+                        .bindPopup(`<strong>${p.nome}</strong><br>${p.endereco}<br><em>${p.tipoResiduo}</em>`);
+                    markers.push(marker); // Add marker to the array
+                }
+            });
+
+            // Once all markers are added, adjust the map view
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds());
+            } else {
+                // Fallback: if no points are found, set a default view (e.g., Maringá)
+                // You can adjust these coordinates and zoom level to a suitable default for your project
+                map.setView([-23.4258, -51.9388], 13); // Example: Maringá, PR coordinates
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching collection points:', error);
+            // Fallback in case of fetch error
+            map.setView([-23.4258, -51.9388], 13); // Example: Maringá, PR
+        });
+</script>
+</body>
+</html>
