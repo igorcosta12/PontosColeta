@@ -1,11 +1,9 @@
-/* Reset básico */
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box; /* Adicionado para garantir o cálculo correto de width/height */
+    box-sizing: border-box;
 }
 
-/* Corpo da página */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
@@ -13,7 +11,6 @@ body {
     line-height: 1.6;
 }
 
-/* Navegação */
 nav {
     background-color: #2c3e50;
     padding: 1rem;
@@ -32,7 +29,6 @@ nav a:hover {
     color: #3498db;
 }
 
-/* Seção principal */
 .home {
     max-width: 1100px;
     margin: 40px auto;
@@ -52,7 +48,6 @@ nav a:hover {
     color: #7f8c8d;
 }
 
-/* Cards */
 .cards {
     display: flex;
     justify-content: space-between;
@@ -102,7 +97,6 @@ nav a:hover {
     background-color: #2980b9;
 }
 
-/* Títulos principais */
 h2 {
     text-align: center;
     font-size: 2rem;
@@ -110,7 +104,6 @@ h2 {
     margin: 30px 0;
 }
 
-/* Formulário (Aplicado a cadastro.html, filtro.html, etc. se usarem a tag <form>) */
 form {
     max-width: 600px;
     margin: 0 auto;
@@ -118,23 +111,21 @@ form {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box; /* Crucial para o cálculo da largura total */
+    box-sizing: border-box; 
 }
 
-/* Estilo geral para inputs de texto (aplicado a todos: nome, cidade, rua, numero) */
 form input[type="text"] {
-    width: 100%; /* Agora ocupa 100% da largura interna do formulário */
+    width: 100%; 
     padding: 12px;
-    margin-bottom: 10px; /* Espaço entre inputs */
+    margin-bottom: 10px; 
     border-radius: 4px;
     border: 1px solid #ddd;
     font-size: 1rem;
-    box-sizing: border-box; /* Inclui padding e borda no width */
+    box-sizing: border-box; 
 }
 
-/* Estilo para o botão do formulário */
 form button {
-    width: 100%; /* Agora ocupa 100% da largura interna do formulário */
+    width: 100%; 
     padding: 12px;
     background-color: #3498db;
     color: white;
@@ -142,50 +133,47 @@ form button {
     font-size: 1.1rem;
     border-radius: 4px;
     cursor: pointer;
-    margin-top: 15px; /* Espaço acima do botão */
-    box-sizing: border-box; /* Inclui padding e borda no width */
+    margin-top: 15px; 
+    box-sizing: border-box; 
 }
 
-/* Estilos para as caixas de sugestão (genéricas para cidade e endereço) */
 .suggestions-box {
     border: 1px solid #ccc;
-    border-top: none; /* Remove a borda de cima para parecer contínuo com o input */
+    border-top: none; 
     max-height: 150px;
     overflow-y: auto;
     position: absolute;
     background-color: white;
-    width: 100%; /* Ocupa 100% da largura do input-container */
+    width: 100%; 
     z-index: 1000;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 0 0 4px 4px; /* Apenas cantos inferiores arredondados */
-    left: 0; /* Alinha à esquerda do input-container */
-    top: 100%; /* Posiciona logo abaixo do input */
+    border-radius: 0 0 4px 4px; 
+    left: 0; 
+    top: 100%; 
 }
 
 .suggestions-box div {
-    padding: 8px 12px; /* Padding interno das sugestões */
+    padding: 8px 12px; 
     cursor: pointer;
-    border-bottom: 1px solid #eee; /* Linha divisória entre sugestões */
+    border-bottom: 1px solid #eee; 
 }
 
 .suggestions-box div:last-child {
-    border-bottom: none; /* Remove a linha da última sugestão */
+    border-bottom: none; 
 }
 
 .suggestions-box div:hover {
-    background-color: #f0f0f0; /* Cor de fundo ao passar o mouse */
-    color: #2c3e50; /* Cor do texto ao passar o mouse */
+    background-color: #f0f0f0; 
+    color: #2c3e50; 
 }
 
-/* Remove qualquer borda indesejada dos containers de input */
 .input-container {
     position: relative;
     margin-bottom: 10px;
-    border: none !important; /* Força a remoção de qualquer borda */
-    box-shadow: none !important; /* Garante que não haja sombra causando linhas */
+    border: none !important; 
+    box-shadow: none !important; 
 }
 
-/* Estilos para o grupo de checkboxes */
 .checkbox-group {
     margin-top: 20px;
     padding: 15px;
@@ -193,46 +181,42 @@ form button {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: flex;
-    flex-wrap: wrap; /* Permite que os checkboxes quebrem para a linha seguinte */
-    gap: 15px; /* Espaço entre os checkboxes */
-    justify-content: flex-start; /* Alinha os itens ao início da linha */
-    box-sizing: border-box; /* Inclui padding no cálculo da largura */
+    flex-wrap: wrap; 
+    gap: 15px; 
+    justify-content: flex-start;
+    box-sizing: border-box; 
 }
 
-/* Título "Tipo(s) de Resíduo(s) Aceito(s):" dentro do checkbox-group */
 .checkbox-group strong {
     font-size: 1.1rem;
     color: #2c3e50;
     margin-bottom: 10px;
-    width: 100%; /* Garante que o título ocupe a linha toda */
+    width: 100%; 
 }
 
-/* Estilo para cada label de checkbox */
 .checkbox-group label {
-    display: flex; /* Faz a label um container flex para alinhar input e texto */
-    align-items: center; /* Alinha o checkbox e o texto verticalmente ao centro */
+    display: flex; 
+    align-items: center; 
     font-size: 1rem;
     color: #7f8c8d;
-    margin-bottom: 0; /* O gap do pai já faz o espaçamento vertical */
+    margin-bottom: 0; 
     cursor: pointer;
-    padding: 5px 0; /* Pequeno padding para aumentar a área clicável */
-    /* Calcula a largura para tentar colocar 3 por linha, considerando o gap */
+    padding: 5px 0; 
     flex-basis: calc(33.333% - 15px);
-    min-width: 120px; /* Largura mínima para cada item (ajustável) */
-    box-sizing: border-box; /* Inclui padding no cálculo da largura */
+    min-width: 120px; 
+    box-sizing: border-box; 
 }
 
-/* Estilo para o input do checkbox */
 .checkbox-group input[type="checkbox"] {
-    margin-right: 8px; /* Espaço entre o checkbox visual e o texto */
-    accent-color: #3498db; /* Customiza a cor do checkbox nativo */
-    width: 18px; /* Tamanho do checkbox (aumentado ligeiramente para visibilidade) */
-    height: 18px; /* Tamanho do checkbox */
-    flex-shrink: 0; /* Evita que o checkbox diminua em layouts flex */
-    vertical-align: middle; /* Ajuda no alinhamento vertical, embora flex já faça muito */
-    transform: translateY(-1px); /* Ajuste fino para alinhar verticalmente se ainda estiver torto */
-    border: 1px solid #999; /* Adiciona uma borda padrão para melhor visual */
-    border-radius: 3px; /* Leve arredondamento */
+    margin-right: 8px; 
+    accent-color: #3498db; 
+    width: 18px; 
+    height: 18px;
+    flex-shrink: 0; 
+    vertical-align: middle;
+    transform: translateY(-1px); 
+    border: 1px solid #999;
+    border-radius: 3px; 
 }
 
 .checkbox-group input[type="checkbox"]:checked {
@@ -245,17 +229,15 @@ form button {
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
 }
 
-/* Estilo de hover no label do checkbox */
 .checkbox-group label:hover {
     color: #2c3e50;
 }
 
-/* Estilos para a lista de resultados (lista.html e filtro.html) */
 #resultados {
     list-style-type: none;
     padding: 0;
     margin-top: 20px;
-    max-width: 800px; /* Largura máxima da lista */
+    max-width: 800px; 
     margin-left: auto;
     margin-right: auto;
 }
@@ -282,7 +264,6 @@ form button {
     color: #7f8c8d;
 }
 
-/* Estilo para mostrar quando não há resultados */
 #resultados.empty {
     text-align: center;
     color: #7f8c8d;
@@ -293,19 +274,18 @@ form button {
     border: 1px solid #ccc;
 }
 
-/* Estilo para o campo de busca (filtro.html) */
 #busca {
-    width: 100%; /* Ocupa 100% da largura do contêiner pai */
+    width: 100%; 
     padding: 12px;
     font-size: 1.1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
     margin-bottom: 20px;
     display: block;
-    max-width: 600px; /* Largura máxima, se estiver dentro do form ou centralizado */
+    max-width: 600px; 
     margin-left: auto;
     margin-right: auto;
-    box-sizing: border-box; /* Inclui padding e borda no width */
+    box-sizing: border-box; 
 }
 
 #busca::placeholder {
@@ -317,11 +297,10 @@ form button {
     border-color: #3498db;
 }
 
-/* Estilos para a lista de pontos (lista.html) */
 #listaPontos {
     margin-top: 20px;
     padding: 20px;
-    max-width: 800px; /* Adicionado para alinhar com #resultados */
+    max-width: 800px; 
     margin-left: auto;
     margin-right: auto;
 }
