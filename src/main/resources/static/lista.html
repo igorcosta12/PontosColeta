@@ -26,9 +26,9 @@
         const errorMessage = document.getElementById("errorMessage");
         const container = document.getElementById("listaPontos");
 
-        loadingMessage.style.display = "block"; // Mostrar mensagem de carregamento
-        errorMessage.style.display = "none";    // Esconder mensagem de erro
-        container.innerHTML = "";               // Limpar conteúdo anterior
+        loadingMessage.style.display = "block"; 
+        errorMessage.style.display = "none";    
+        container.innerHTML = "";               
 
         try {
             const resposta = await fetch('/pontos');
@@ -36,7 +36,7 @@
                 throw new Error(`Erro HTTP! Status: ${resposta.status}`);
             }
             const pontos = await resposta.json();
-            loadingMessage.style.display = "none"; // Esconder mensagem de carregamento
+            loadingMessage.style.display = "none"; 
 
             if (pontos.length === 0) {
                 container.innerHTML = "<p style='text-align: center;'>Nenhum ponto de coleta cadastrado ainda.</p>";
@@ -47,8 +47,6 @@
                 const div = document.createElement("div");
                 div.classList.add("ponto");
 
-                // Agora p.tipoResiduo é uma lista, então .join() funciona.
-                // Verificação para caso tipoResiduo venha nulo ou vazio
                 const tiposFormatados = (p.tipoResiduo && p.tipoResiduo.length > 0) ? p.tipoResiduo.join(", ") : "Não informado";
 
                 div.innerHTML = `
@@ -62,7 +60,7 @@
         } catch (error) {
             console.error("Erro ao carregar pontos:", error);
             loadingMessage.style.display = "none";
-            errorMessage.style.display = "block"; // Mostrar mensagem de erro
+            errorMessage.style.display = "block"; 
             errorMessage.textContent = `Ocorreu um erro ao carregar os pontos: ${error.message}`;
         }
     }
