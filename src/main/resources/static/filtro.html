@@ -42,7 +42,7 @@
         }
 
         .checkbox-grid input[type="checkbox"] {
-            accent-color: #198754; /* Verde Bootstrap */
+            accent-color: #198754; 
             width: 18px;
             height: 18px;
             margin-right: 8px;
@@ -124,7 +124,6 @@
 <div id="loadingMapMessage">Carregando mapa e pontos...</div>
 <div id="errorMapMessage" style="display: none;"></div>
 
-<!-- NOVO: container centralizado para o mapa -->
 <div id="map-container">
     <div id="map"></div>
 </div>
@@ -132,9 +131,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const map = L.map('map');
-    let allPontos = []; // Armazenar todos os pontos carregados
-    let currentMarkers = L.featureGroup().addTo(map); // Grupo de marcadores ativos no mapa
-
+    let allPontos = []; 
+    let currentMarkers = L.featureGroup().addTo(map); 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
@@ -155,35 +153,32 @@
             }
             allPontos = await res.json();
             loadingMapMessage.style.display = "none";
-            applyFilters(); // Aplicar filtros iniciais (se houver) ou mostrar todos
+            applyFilters(); 
         } catch (error) {
             console.error('Erro ao buscar os pontos de coleta:', error);
             loadingMapMessage.style.display = "none";
             errorMapMessage.style.display = "block";
             errorMapMessage.textContent = `Erro ao carregar pontos: ${error.message}`;
-            // Fallback para uma visualização padrão se não houver pontos
-            map.setView([-23.4258, -51.9388], 13); // Exemplo: Maringá, PR
+            map.setView([-23.4258, -51.9388], 13); 
         }
     }
 
     function applyFilters() {
-        currentMarkers.clearLayers(); // Remove todos os marcadores atuais do mapa
+        currentMarkers.clearLayers(); 
         const selectedTypes = Array.from(filterCheckboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value.toLowerCase());
 
         const filteredPontos = allPontos.filter(p => {
-            if (!p.latitude || !p.longitude) return false; // Ignora pontos sem coordenadas
+            if (!p.latitude || !p.longitude) return false; 
 
-            // Se nenhum filtro estiver selecionado, mostra todos os pontos
+      
             if (selectedTypes.length === 0) {
                 return true;
             }
 
-            // Garante que p.tipoResiduo é um array e o converte para minúsculas para comparação
             const pontoTipos = Array.isArray(p.tipoResiduo) ? p.tipoResiduo.map(t => t.toLowerCase()) : [];
 
-            // Verifica se o ponto possui PELO MENOS UM dos tipos selecionados
             return selectedTypes.some(selectedType => pontoTipos.includes(selectedType));
         });
 
@@ -192,37 +187,30 @@
             const marker = L.marker([p.latitude, p.longitude])
                 .bindPopup(`<strong>${p.nome}</strong><br>${p.endereco}<br><em>${ (p.tipoResiduo && p.tipoResiduo.length > 0) ? p.tipoResiduo.join(", ") : "Não informado" }</em>`);
             markersToAdd.push(marker);
-            currentMarkers.addLayer(marker); // Adiciona ao grupo de marcadores
+            currentMarkers.addLayer(marker); 
         });
 
-        // Ajusta a visualização do mapa para cobrir os marcadores filtrados
         if (markersToAdd.length > 0) {
-            map.fitBounds(currentMarkers.getBounds(), { padding: [50, 50] }); // Padding para não colar nas bordas
+            map.fitBounds(currentMarkers.getBounds(), { padding: [50, 50] }); 
         } else {
-            // Se nenhum ponto corresponde ao filtro, mantém a visualização atual
-            // ou centraliza em um ponto padrão/cidade principal se desejar.
-            // Para este caso, manter a visualização atual para que o usuário possa mudar o filtro.
             if (allPontos.length > 0) {
                 map.fitBounds(L.featureGroup(allPontos.map(p => L.marker([p.latitude, p.longitude]))).getBounds(), { padding: [50, 50] });
             } else {
-                map.setView([-23.4258, -51.9388], 13); // Maringá, PR
+                map.setView([-23.4258, -51.9388], 13); 
             }
 
         }
     }
 
-    // Adiciona event listeners para os checkboxes de filtro
     filterCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', applyFilters);
     });
 
-    // Event listener para o botão de limpar filtros
     clearFiltersBtn.addEventListener('click', () => {
         filterCheckboxes.forEach(cb => cb.checked = false);
-        applyFilters(); // Re-aplica os filtros (todos os pontos aparecerão)
+        applyFilters(); 
     });
 
-    // Carrega os pontos quando a página é iniciada
     fetchPontos();
 </script>
 </body>
