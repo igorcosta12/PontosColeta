@@ -1,72 +1,71 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Pontos de Coleta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <title>Listagem | Central de Coleta Seletiva</title>
 </head>
 <body>
+    <nav>
+        <a href="index.html">Início</a>
+        <a href="cadastro.html">Cadastrar</a>
+        <a href="#">Listar Pontos</a>
+        <a href="filtro.html">Filtrar</a>
+    </nav>
 
-<nav>
-    <a href="index.html">Início</a>
-    <a href="cadastro.html">Cadastrar</a>
-    <a href="lista.html">Listar Pontos</a>
-    <a href="filtro.html">Filtrar</a>
-    <a href="mapa.html">Mapa</a>
-</nav>
+    <h2>Pontos de Coleta Cadastrados</h2>
+    <div id="loadingMessage" style="text-align: center; margin-top: 20px;">Carregando pontos...</div>
+    <div id="errorMessage" style="text-align: center; margin-top: 20px; color: red; display: none;">Ocorreu um erro ao carregar os pontos.</div>
+    <div id="listaPontos"></div>
 
-<h2>Pontos de Coleta Cadastrados</h2>
-<div id="loadingMessage" style="text-align: center; margin-top: 20px;">Carregando pontos...</div>
-<div id="errorMessage" style="text-align: center; margin-top: 20px; color: red; display: none;">Ocorreu um erro ao carregar os pontos.</div>
-<div id="listaPontos"></div>
+    <script>
+        async function carregarPontos() {
+            const loadingMessage = document.getElementById("loadingMessage");
+            const errorMessage = document.getElementById("errorMessage");
+            const container = document.getElementById("listaPontos");
 
-<script>
-    async function carregarPontos() {
-        const loadingMessage = document.getElementById("loadingMessage");
-        const errorMessage = document.getElementById("errorMessage");
-        const container = document.getElementById("listaPontos");
+            loadingMessage.style.display = "block"; 
+            errorMessage.style.display = "none";    
+            container.innerHTML = "";               
 
-        loadingMessage.style.display = "block"; 
-        errorMessage.style.display = "none";    
-        container.innerHTML = "";               
+            try {
+                const resposta = await fetch('/pontos');
+                if (!resposta.ok) {
+                    throw new Error(`Erro HTTP! Status: ${resposta.status}`);
+                }
+                const pontos = await resposta.json();
+                loadingMessage.style.display = "none"; 
 
-        try {
-            const resposta = await fetch('/pontos');
-            if (!resposta.ok) {
-                throw new Error(`Erro HTTP! Status: ${resposta.status}`);
+                if (pontos.length === 0) {
+                    container.innerHTML = "<p style='text-align: center;'>Nenhum ponto de coleta cadastrado ainda.</p>";
+                    return;
+                }
+
+                pontos.forEach(p => {
+                    const div = document.createElement("div");
+                    div.classList.add("ponto");
+
+                    const tiposFormatados = (p.tipoResiduo && p.tipoResiduo.length > 0) ? p.tipoResiduo.join(", ") : "Não informado";
+
+                    div.innerHTML = `
+                        <strong>Nome:</strong> ${p.nome}<br>
+                        <strong>Endereço:</strong> ${p.endereco}<br>
+                        <strong>Tipo(s) de Resíduo:</strong> ${tiposFormatados}<br><br>
+                        `;
+
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar pontos:", error);
+                loadingMessage.style.display = "none";
+                errorMessage.style.display = "block"; 
+                errorMessage.textContent = `Ocorreu um erro ao carregar os pontos: ${error.message}`;
             }
-            const pontos = await resposta.json();
-            loadingMessage.style.display = "none"; 
-
-            if (pontos.length === 0) {
-                container.innerHTML = "<p style='text-align: center;'>Nenhum ponto de coleta cadastrado ainda.</p>";
-                return;
-            }
-
-            pontos.forEach(p => {
-                const div = document.createElement("div");
-                div.classList.add("ponto");
-
-                const tiposFormatados = (p.tipoResiduo && p.tipoResiduo.length > 0) ? p.tipoResiduo.join(", ") : "Não informado";
-
-                div.innerHTML = `
-                    <strong>Nome:</strong> ${p.nome}<br>
-                    <strong>Endereço:</strong> ${p.endereco}<br>
-                    <strong>Tipo(s) de Resíduo:</strong> ${tiposFormatados}<br><br>
-                    `;
-
-                container.appendChild(div);
-            });
-        } catch (error) {
-            console.error("Erro ao carregar pontos:", error);
-            loadingMessage.style.display = "none";
-            errorMessage.style.display = "block"; 
-            errorMessage.textContent = `Ocorreu um erro ao carregar os pontos: ${error.message}`;
         }
-    }
 
-    carregarPontos();
-</script>
+        carregarPontos();
+    </script>
 
 </body>
 </html>
